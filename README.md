@@ -18,21 +18,82 @@ This workshop attempts to illustrate how to use Confluent Cloud Platform on GCP
 TODO
 
 ## Setup Environment
+0. Clone this repository: 
+
+    ```
+    git clone https://github.com/cjmatta/Confluent-GCP-Workshop.git
+    cd Confluent-GCP-Workshop
+    ```
+
 1. Initialize a cluster in Confluent Cloud, and get API key/secret
-2. Create some GCP hosts, we're using 2 n1-standard-4 (4 vCPUs, 15 GB memory)
+2. Create some GCP hosts, we're using 2 n1-standard-4 (4 vCPUs, 15 GB memory, 200GB PD). From Cloud Shell or any machine with a configured gcloud SDK you can do:
+
+    ```
+    PROJECT=${DEVSHELL_PROJECT_ID:=my-project}
+    ZONE=us-central1-c
+    for i in $(seq 2); do
+        gcloud beta compute --project=${PROJECT} instances create confluent-cloud-${i} \
+            --zone=${ZONE} \
+            --machine-type=n1-standard-2 \
+            --scopes=https://www.googleapis.com/auth/cloud-platform \
+            --image=centos-7-drawfork-v20180327 \
+            --image-project=eip-images \
+            --boot-disk-size=200GB \
+            --boot-disk-type=pd-standard \
+            --boot-disk-device-name=confluent-cloud
+    done
+    ```
+
 3. Clone the Confluent Ansible repository
     ```
     $ git clone https://github.com/cjmatta/cp-ansible
-    $ git checkout ccloud-profiles
     ```
 4. Edit the `hosts.gcp-workshop.yml` and `gcp-workshop.yml` with your hosts, API info, and desired roles to install on which hosts, and copy them into the `cp-ansible` directory.
+
+You can get the hostnames and IPs using `gcloud compute instances list`:
+
+    ```
+    $ gcloud compute instances list --filter="name~confluent-cloud"
+    ```
+
+Generate the hosts file you'll need for the ansible playbooks:
+
+    ```
+    CP_HOSTS=$(gcloud compute instances list --format=json --filter="name~confluent-cloud"  |\
+        jq -r '.[] | .name + " ansible_host=" + .networkInterfaces[0].accessConfigs[0].natIP')
+
+    cat >>hosts<<EOF
+    ${CP_HOSTS}
+
+    [preflight]
+    confluent-cloud-1
+    confluent-cloud-2
+    [schema-registry]
+    confluent-cloud-1
+    confluent-cloud-2
+    [connect-distributed]
+    confluent-cloud-1
+    confluent-cloud-2
+    [ksql]
+    confluent-cloud-1
+    confluent-cloud-2
+    EOF
+    ```
+
+    Confirm that ansible can connect to your instances:
+
+    ```
+    $ ansible -i hosts --key-file=~/.ssh/google_compute_engine -m ping all
+    ```
+
 5. Install Confluent Platform components on the GCP hosts
     ```
-    $ ansible-playbook --private-key=~/.ssh/google_compute_engine -i hosts.gcp-workshop.yml gcp-workshop.yml
+    $ ansible-playbook --private-key=~/.ssh/google_compute_engine -i hosts gcp-workshop.yml
     ```
 6. Install Connect plugins
     ```
-    $ ansible-playbook --private-key=~/.ssh/google_compute_engine -i hosts.gcp-workshop.yml install-connectors-playbook.yml
+    $ ansible-playbook --private-key=~/.ssh/google_compute_engine -i hosts.gcp-workshop.yml \
+        -b --become-user=root install-connectors-playbook.yml
     ```
 
 ### Set up Kafka Connect Source
