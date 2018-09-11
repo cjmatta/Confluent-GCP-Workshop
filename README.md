@@ -84,7 +84,7 @@ TODO
     ```
 3. Register the wikipedia topic as a stream:
     ```
-    ksql> create stream wikipediasource with (kafka_topic='wikipedia', value_format='avro');
+    ksql> create stream wikipediasource with (kafka_topic='wikipedia', value_format='avro', key='channel', timestamp='createdat');
 
     Message
     ----------------
@@ -137,12 +137,14 @@ This will demonstrate joining a stream of events to a table of dimensions for da
     1536429549813 | #uk.wikipedia | #uk.wikipedia | English
     ```
 
-6. Create an enriched stream by joining the edits to the language topic:
+6. Create an enriched stream by joining the edits to the language topic, let's also add a string representation of the timestamp:
     ```sql
     create stream wikipediaedits with ( \
-        value_format = 'avro' \
+        value_format = 'avro', \
+        timestamp = 'w.createdat' \
     ) as \
     select \
+        TIMESTAMPTOSTRING(w.createdat, 'yyyy-MM-dd HH:mm:ss.SSS') createdat_string, \
         w.createdat, \
         w.wikipage, \
         w.channel channel, \
