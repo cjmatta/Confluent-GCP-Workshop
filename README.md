@@ -1,6 +1,8 @@
 # Confluent Cloud on GCP 
 This workshop attempts to illustrate how to use Confluent Cloud Platform on GCP
 
+![data diagram][data-diagram.png]
+
 ## Components
 * Google Cloud Platform
 * [Confluent Cloud Professional](https://confluent.cloud)
