@@ -1,6 +1,9 @@
 #!/bin/bash
 
-CONNECT_HOST=localhost
+
+WORKER1=$(gcloud compute instances list --format=json --filter="name~confluent-cloud"  | jq -r '.[0] | .networkInterfaces[0].accessConfigs[0].natIP')
+WORKER2=$(gcloud compute instances list --format=json --filter="name~confluent-cloud"  | jq -r '.[1] | .networkInterfaces[0].accessConfigs[0].natIP')
+CONNECT_HOST=${WORKER1}
 
 if [[ $1 ]];then
     CONNECT_HOST=$1
@@ -22,7 +25,7 @@ DATA=$( cat << EOF
     "producer.interceptor.classes": "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor",
     "key.converter":"org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "io.confluent.connect.avro.AvroConverter",
-    "value.converter.schema.registry.url": "http://104.196.123.212:8081,http://35.231.176.177:8081",
+    "value.converter.schema.registry.url": "http://${WORKER1}:8081,http://${WORKER2}:8081",
     "tasks.max": "4"
   }
 }

@@ -40,20 +40,53 @@ pip install ansible
 4. Create some GCP hosts, we're using 2 n1-standard-2 (2 vCPUs, 7.5 GB memory, 200GB Persistent Disk). From Cloud Shell, you can create them like this (change `my-project` to your project ID if you're not using Cloud Shell or if you want to place the instances into a specific project). If this is a new project, you may be prompted to enable the Compute Engine APIs.
 
 ```bash
-PROJECT=${DEVSHELL_PROJECT_ID:=my-project}
+gcloud config set project $(gcloud config list --format 'value(core.project)')
 ZONE=us-central1-c
 for i in $(seq 2); do
-    gcloud beta compute --project=${PROJECT} instances create confluent-cloud-${i} \
+    gcloud beta compute instances create confluent-cloud-${i} \
         --zone=${ZONE} \
         --machine-type=n1-standard-2 \
         --scopes=https://www.googleapis.com/auth/cloud-platform \
-        --image=centos-7-drawfork-v20180327 \
-        --image-project=eip-images \
         --boot-disk-size=200GB \
         --boot-disk-type=pd-standard \
         --boot-disk-device-name=confluent-cloud \
+        --tags ksql-server,schema-registry,kafka-connect
         --metadata enable-oslogin=TRUE
 done
+```
+
+and open the service ports:
+
+```bash
+gcloud compute \
+    firewall-rules create allow-connect-connect-rest \
+    --direction=INGRESS \
+    --priority=1000 \
+    --network=default \
+    --action=ALLOW \
+    --rules=tcp:8083 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=kafka-connect
+
+gcloud compute \
+    firewall-rules create allow-connect-ksql-server \
+    --direction=INGRESS \
+    --priority=1000 \
+    --network=default \
+    --action=ALLOW \
+    --rules=tcp:8088 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=ksql-server
+
+gcloud compute \
+    firewall-rules create allow-connect-schema-registry \
+    --direction=INGRESS \
+    --priority=1000 \
+    --network=default \
+    --action=ALLOW \
+    --rules=tcp:8081 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=schema-registry
 ```
 
 5. Ensure you have SSH keys set up in your home directory
@@ -73,7 +106,7 @@ cd cp-ansible
 git checkout ccloud-profiles
 ```
 
-7. Use `gcloud compute instances list` to generate the hosts file you'll need for the ansible playbooks:
+7. Use `gcloud compute instances list` to generate the hosts file you'll need for the ansible playbooks, run this from the `cp-ansible` directory:
 
 ```bash
 CP_HOSTS=$(gcloud compute instances list --format=json --filter="name~confluent-cloud"  |\
@@ -97,7 +130,7 @@ confluent-cloud-2
 EOF
 ```
 
-8. Install the ccloud tool and initialize the configuration with `ccloud init`. To obtain the information you need to supply to `ccloud init`, visit https://confluent.cloud/clusters and choose the cluster you just created. Click the triple-dot menu and select "Client Config" to access your broker endpoing and API credentials.
+8. _Note: Unfortunately the `ccloud` binary doesn't work on Google Cloud Console since the outgoing Kafka port is blocked, so while this step is necessary for providing the ccloud config to ansible, the ccloud commands should be run elsewhere._ Install the ccloud tool and initialize the configuration with `ccloud init`. To obtain the information you need to supply to `ccloud init`, visit https://confluent.cloud/clusters and choose the cluster you just created. Click the triple-dot menu and select "Client Config" to access your broker endpoing and API credentials.
 
 ![ccloud screenshot](images/confluent-client-config.png)
 
@@ -115,7 +148,7 @@ API_KEY=$(cat ~/.ccloud/config | grep jaas | awk '{print $3}' | awk -F= '{print 
 API_SECRET=$(cat ~/.ccloud/config | grep jaas | awk '{print $4}' | awk -F= '{print $2}' | sed s/\;$//g)
 OSLOGIN_USERNAME=$(gcloud compute os-login describe-profile --format json | jq -r '.posixAccounts[0].username')
 
-cd cp-ansible && mkdir group_vars
+cd cp-ansible && mkdir -p group_vars
 cat >group_vars/all<<EOF
 ansible_user: ${OSLOGIN_USERNAME}
 ansible_connection: ssh
@@ -167,7 +200,7 @@ ccloud topic create wikipedia --replication-factor 3 --partitions 3
 2. Edit `submit_wikipedia_irc_config.sh` with schema registry IPs, and then submit the connector:
 
 ```bash
-./submit_wikipedia_irc_config.sh <connect-distributed-host>
+./submit_wikipedia_irc_config.sh
 ```
 
 3. Check the status of the connector:

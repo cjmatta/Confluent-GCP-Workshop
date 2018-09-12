@@ -1,6 +1,8 @@
 #!/bin/bash
 
-CONNECT_HOST=localhost
+WORKER1=$(gcloud compute instances list --format=json --filter="name~confluent-cloud"  | jq -r '.[0] | .networkInterfaces[0].accessConfigs[0].natIP')
+WORKER2=$(gcloud compute instances list --format=json --filter="name~confluent-cloud"  | jq -r '.[1] | .networkInterfaces[0].accessConfigs[0].natIP')
+CONNECT_HOST=${WORKER1}
 
 if [[ $1 ]];then
     CONNECT_HOST=$1
@@ -17,9 +19,10 @@ DATA=$( cat << EOF
     "sanitizeTopics": true,
     "autoUpdateSchemas": true,
     "schemaRetriever": "com.wepay.kafka.connect.bigquery.schemaregistry.schemaretriever.SchemaRegistrySchemaRetriever",
-    "schemaRegistryLocation": "http://104.196.123.212:8081,http://35.231.176.177:8081",
+    "schemaRegistryLocation": "http://${WORKER1}:8081,http://${WORKER2}:8081",
     "key.converter":"org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://${WORKER1}:8081,http://${WORKER2}:8081",
     "bufferSize": 100000,
     "maxWriteSize": 10000,
     "tableWriteWait": 1000,
