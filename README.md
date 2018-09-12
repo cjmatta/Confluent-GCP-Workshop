@@ -139,16 +139,16 @@ This will demonstrate joining a stream of events to a table of dimensions for da
 
 6. Create an enriched stream by joining the edits to the language topic, let's also add a string representation of the timestamp:
     ```sql
-    create stream wikipediaeditswithtime with ( \
+    create stream wikipediaedits with ( \
         value_format = 'avro', \
         partitions = 3, \
         timestamp = 'w.createdat' \
     ) as \
     select \
-        TIMESTAMPTOSTRING(w.createdat, 'yyyy-MM-dd HH:mm:ss.SSS') createdat_string, \
+        TIMESTAMPTOSTRING(w.createdat, 'yyyy-MM-dd HH:mm:ss.SSS') AS createdat_string, \
         w.createdat, \
         w.wikipage, \
-        w.channel channel, \
+        w.channel AS channel, \
         w.username, \
         w.commitmessage, \
         w.bytechange, \

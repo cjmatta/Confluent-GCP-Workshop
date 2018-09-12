@@ -17,15 +17,16 @@ DATA=$( cat << EOF
     "sanitizeTopics": true,
     "autoUpdateSchemas": true,
     "schemaRetriever": "com.wepay.kafka.connect.bigquery.schemaregistry.schemaretriever.SchemaRegistrySchemaRetriever",
-    "schemaRegistryLocation": "http://35.231.187.35:8081,http://35.237.49.31:8081",
+    "schemaRegistryLocation": "http://104.196.123.212:8081,http://35.231.176.177:8081",
     "key.converter":"org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
     "bufferSize": 100000,
     "maxWriteSize": 10000,
     "tableWriteWait": 1000,
     "project": "sales-engineering-206314",
     "datasets": ".*=wikipedia",
     "keyfile": "/etc/kafka/gbq-keyfile.json",
-    "tasks.max": "1"
+    "tasks.max": "4"
   }
 }
 EOF
