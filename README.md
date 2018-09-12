@@ -21,7 +21,7 @@ TODO
 
 ## Setup Environment
 1. Initialize a cluster in Confluent Cloud, and get API key/secret
-2. Create some GCP hosts, we're using 2 n1-standard-4 (4 vCPUs, 15 GB memory)
+2. Create some GCP hosts, we're using 2 n1-standard (2 vCPUs, 8 GB memory)
 3. Clone the Confluent Ansible repository
     ```
     $ git clone https://github.com/cjmatta/cp-ansible
