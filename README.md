@@ -47,7 +47,7 @@ for i in $(seq 2); do
         --boot-disk-size=200GB \
         --boot-disk-type=pd-standard \
         --boot-disk-device-name=confluent-cloud \
-        --tags ksql-server,schema-registry,kafka-connect
+        --tags ksql-server,schema-registry,kafka-connect \
         --metadata enable-oslogin=TRUE
 done
 ```
