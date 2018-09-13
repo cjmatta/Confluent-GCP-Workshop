@@ -26,7 +26,7 @@ DATA=$( cat << EOF
     "key.converter":"org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "io.confluent.connect.avro.AvroConverter",
     "value.converter.schema.registry.url": "http://${WORKER1}:8081,http://${WORKER2}:8081",
-    "tasks.max": "4"
+    "tasks.max": "1"
   }
 }
 EOF

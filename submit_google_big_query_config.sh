@@ -14,7 +14,8 @@ DATA=$( cat << EOF
   "name": "bigquery-wikipediaedits",
   "config": {
     "connector.class": "com.wepay.kafka.connect.bigquery.BigQuerySinkConnector",
-    "topics": "WIKIPEDIAEDITS",
+    "topics": "WIKIPEDIAEDITS,wikipedia",
+    "topicsToTables": "WIKIPEDIAEDITS=WIKIPEDIAEDITS,wikipedia=wikipediasource",
     "autoCreateTables": true,
     "sanitizeTopics": true,
     "autoUpdateSchemas": true,
