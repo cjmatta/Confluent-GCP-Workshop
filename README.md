@@ -181,7 +181,7 @@ ansible-playbook --private-key=~/.ssh/google_compute_engine -i hosts gcp-worksho
 11. Install Connect plugins
 
 ```bash
-cp ../install_connectors_playbook.yml .
+cp ../install-connectors-playbook.yml .
 ansible-playbook --private-key=~/.ssh/google_compute_engine -i hosts \
     -b --become-user=root install-connectors-playbook.yml
 ```
