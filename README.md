@@ -194,7 +194,7 @@ ansible-playbook --private-key=~/.ssh/google_compute_engine -i hosts \
 ccloud topic create wikipedia --replication-factor 3 --partitions 3
 ```
 
-2. Edit `submit_wikipedia_irc_config.sh` with schema registry IPs, and then submit the connector:
+2. Submit the IRC source connector:
 
 ```bash
 ./submit_wikipedia_irc_config.sh
@@ -327,7 +327,7 @@ This will demonstrate joining a stream of events to a table of dimensions for da
 1. Create service account, and download the authentication json file
 2. Copy keyfile to the connect hosts:
     `$ ansible -i hosts.gcp-workshop.yml --private-key=~/.ssh/google_compute_engine -m copy -a "src=<path to keyfile> dest=/etc/kafka/gbq-keyfile.json" connect-distributed`
-3. Edit `submit_google_big_query_config.sh` with Schema Registry ips, and then submit the config:
+3. Submit the Big Query config:
     ```
     $ ./submit_google_big_query_config.sh <connect host ip>
     ```
