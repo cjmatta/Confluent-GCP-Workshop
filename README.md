@@ -14,6 +14,8 @@ This workshop attempts to illustrate how to use Confluent Cloud Platform on GCP
 * [Confluent Ansible scripts](https://github.com/cjmatta/cp-ansible/tree/ccloud-profiles)
 * [Kafkacat](https://github.com/edenhill/kafkacat)
 
+_Note: this workshop will not work in Google Cloud Shell as it blocks a number of outgoing ports_
+
 ## Setup Environment
 1. Clone this repository:
 
@@ -125,7 +127,7 @@ confluent-cloud-2
 EOF
 ```
 
-8. _Note: Unfortunately the `ccloud` binary doesn't work on Google Cloud Console since the outgoing Kafka port is blocked, so while this step is necessary for providing the ccloud config to ansible, the ccloud commands should be run elsewhere._ Install the ccloud tool and initialize the configuration with `ccloud init`. To obtain the information you need to supply to `ccloud init`, visit https://confluent.cloud/clusters and choose the cluster you just created. Click the triple-dot menu and select "Client Config" to access your broker endpoing and API credentials.
+8. Install the ccloud tool and initialize the configuration with `ccloud init`. To obtain the information you need to supply to `ccloud init`, visit https://confluent.cloud/clusters and choose the cluster you just created. Click the triple-dot menu and select "Client Config" to access your broker endpoing and API credentials.
 
 ![ccloud screenshot](images/confluent-client-config.png)
 
