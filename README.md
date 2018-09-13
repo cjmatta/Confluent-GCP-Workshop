@@ -1,8 +1,6 @@
 # Confluent Cloud on GCP 
 This workshop attempts to illustrate how to use Confluent Cloud Platform on GCP
 
-![data diagram](images/data-diagram.png)
-
 ## Components
 * Google Cloud Platform
 * [Confluent Cloud Professional](https://confluent.cloud)
@@ -15,9 +13,6 @@ This workshop attempts to illustrate how to use Confluent Cloud Platform on GCP
 * [Confluent KSQL](https://github.com/confluentinc/ksql)
 * [Confluent Ansible scripts](https://github.com/cjmatta/cp-ansible/tree/ccloud-profiles)
 * [Kafkacat](https://github.com/edenhill/kafkacat)
-
-## Agenda
-TODO
 
 ## Setup Environment
 1. Clone this repository:
@@ -236,6 +231,8 @@ $ ${CONFLUENT_HOME}/bin/kafka-avro-console-consumer --bootstrap-server pkc-l9v0e
 ```
 
 ## KSQL
+![data diagram](images/data-diagram.png)
+
 1. Log into one of the KSQL servers
 2. Start KSQL CLI
     ```
