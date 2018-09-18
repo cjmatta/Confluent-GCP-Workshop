@@ -3,6 +3,7 @@ This workshop attempts to illustrate how to use Confluent Cloud Platform on GCP
 
 ## Components
 * Google Cloud Platform
+* [Google Cloud SDK](https://cloud.google.com/sdk/)
 * [Confluent Cloud Professional](https://confluent.cloud)
 * [Confluent Platform](https://www.confluent.io/download/) (for local testing)
 * [Confluent Schema Registry](https://docs.confluent.io/current/schema-registry/docs/index.html)
@@ -14,7 +15,7 @@ This workshop attempts to illustrate how to use Confluent Cloud Platform on GCP
 * [Confluent Ansible scripts](https://github.com/cjmatta/cp-ansible/tree/ccloud-profiles)
 * [Kafkacat](https://github.com/edenhill/kafkacat)
 
-_Note: this workshop will not work in Google Cloud Shell as it blocks a number of outgoing ports_
+_Note: this workshop will not work in Google Cloud Shell as it blocks a number of outgoing ports. This workshop also assumes [Google Cloud SDK](https://cloud.google.com/sdk) has already been installed._
 
 ## Setup Environment
 1. Clone this repository:
