@@ -47,7 +47,7 @@ for i in $(seq 2); do
         --boot-disk-size=200GB \
         --boot-disk-type=pd-standard \
         --boot-disk-device-name=confluent-cloud \
-        --tags ksql-server,schema-registry,kafka-connect \
+        --tags ksql-server,schema-registry,kafka-connect,control-center \
         --metadata enable-oslogin=TRUE
 done
 ```
@@ -84,6 +84,16 @@ gcloud compute \
     --rules=tcp:8081 \
     --source-ranges=0.0.0.0/0 \
     --target-tags=schema-registry
+    
+gcloud compute \
+    firewall-rules create allow-connect-control-center \
+    --direction=INGRESS \
+    --priority=1000 \
+    --network=default \
+    --action=ALLOW \
+    --rules=tcp:9021 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=control-center
 ```
 
 5. Ensure you have SSH keys set up in your home directory
@@ -124,6 +134,8 @@ confluent-cloud-2
 [ksql]
 confluent-cloud-1
 confluent-cloud-2
+[control-center]
+confluent-cloud-1
 EOF
 ```
 
@@ -257,13 +269,13 @@ This will demonstrate joining a stream of events to a table of dimensions for da
     ```
     $ ccloud topic create wikipedia-language-map --partitions 3 --replication-factor 3 --config cleanup.policy=compact
     ```
-2. Push lookup data into the topic using the `publish_language_map.sh` (requires [Kafkacat](https://github.com/edenhill/kafkacat)):
+2. Push lookup data into the topic using the `publish_language_map.sh`:
     ```
     $ ./publish_language_map.sh
     ```
 3. Consume topic to ensure the data is there:
     ```
-    $ kafkacat -F ~/.ccloud/config -b <broker endpoint>:9092 -C -t wikipedia-language-map -o beginning -K:
+    $ ccloud consume -b -t wikipedia-language-map
     ```
 4. From KSQL CLI, register the topic as a **TABLE**:
     ```
@@ -326,9 +338,11 @@ This will demonstrate joining a stream of events to a table of dimensions for da
 #### Google Big Query Sink
 1. Create service account, and download the authentication json file
 2. Copy keyfile to the connect hosts:
-    `$ ansible -i hosts.gcp-workshop.yml --private-key=~/.ssh/google_compute_engine -m copy -a "src=<path to keyfile> dest=/etc/kafka/gbq-keyfile.json" connect-distributed`
-3. Submit the Big Query config:
+    `$ ansible -i hosts --private-key=~/.ssh/google_compute_engine -m copy -a "src=<path to keyfile> dest=/etc/kafka/gbq-keyfile.json" connect-distributed`
+3. Create a big query dataset called "wikipedia"
+4. Edit the Big Query connecto configuration andreplace `project` config with your actual project id. 
+5. Submit the Big Query config:
     ```
-    $ ./submit_google_big_query_config.sh <connect host ip>
+    $ ./submit_google_big_query_config.sh
     ```
 

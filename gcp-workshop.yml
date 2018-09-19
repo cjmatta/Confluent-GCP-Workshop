@@ -16,3 +16,7 @@
   tasks:
   - import_role:
       name: confluent.ksql
+- hosts: control-center
+  tasks:
+  - import_role:
+      name: confluent.control-center
