@@ -345,4 +345,8 @@ This will demonstrate joining a stream of events to a table of dimensions for da
     ```
     $ ./submit_google_big_query_config.sh
     ```
+6. Here's a fun analytical query to run on BigQuery:
+    ```
+    SELECT language, (count(*)/sum(count(*)) over ())*100 as percentage FROM `<project_id>.wikipedia.WIKIPEDIAEDITS` group by language
+    ```
 
