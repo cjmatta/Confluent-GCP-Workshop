@@ -48,7 +48,7 @@ for i in $(seq 2); do
         --boot-disk-size=200GB \
         --boot-disk-type=pd-standard \
         --boot-disk-device-name=confluent-cloud \
-        --tags ksql-server,schema-registry,kafka-connect \
+        --tags ksql-server,schema-registry,kafka-connect,control-center \
         --metadata enable-oslogin=TRUE
 done
 ```
@@ -85,6 +85,16 @@ gcloud compute \
     --rules=tcp:8081 \
     --source-ranges=0.0.0.0/0 \
     --target-tags=schema-registry
+
+gcloud compute \
+    firewall-rules create allow-control-center \
+    --direction=INGRESS \
+    --priority=1000 \
+    --network=default \
+    --action=ALLOW \
+    --rules=tcp:9021 \
+    --source-ranges=0.0.0.0/0 \
+    --target-tags=control-center
 ```
 
 5. Ensure you have SSH keys set up in your home directory
@@ -125,6 +135,8 @@ confluent-cloud-2
 [ksql]
 confluent-cloud-1
 confluent-cloud-2
+[control-center]
+confluent-cloud-1
 EOF
 ```
 
@@ -258,13 +270,34 @@ This will demonstrate joining a stream of events to a table of dimensions for da
     ```
     $ ccloud topic create wikipedia-language-map --partitions 3 --replication-factor 3 --config cleanup.policy=compact
     ```
-2. Push lookup data into the topic using the `publish_language_map.sh` (requires [Kafkacat](https://github.com/edenhill/kafkacat)):
+2. Push lookup data into the topic:
     ```
-    $ ./publish_language_map.sh
+    {
+    cat <<EOF | $CONFLUENT_HOME/bin/kafka-console-producer --broker-list localhost:9092 \
+    --topic wikipedia-language-map \
+    --property "parse.key=true" \
+    --property "key.separator=:"
+    #en.wikipedia:#en.wikipedia,English
+    #fr.wikipedia:#fr.wikipedia,French
+    #es.wikipedia:#es.wikipedia,Spanish
+    #ru.wikipedia:#ru.wikipedia,Russian
+    #en.wiktionary:#en.wiktionary,English
+    #de.wikipedia:#de.wikipedia,German
+    #zh.wikipedia:#zh.wikipedia,Chinese
+    #sd.wikipedia:#sd.wikipedia,Arabic
+    #it.wikipedia:#it.wikipedia,Italian
+    #mediawiki.wikipedia:#mediawiki.wikipedia,English
+    #commons.wikimedia:#commons.wikimedia,English
+    #eu.wikipedia:#eu.wikipedia,English
+    #vo.wikipedia:#vo.wikipedia,Volapük
+    #eo.wikipedia:#eo.wikipedia,Esperanto
+    #uk.wikipedia:#uk.wikipedia,English
+    EOF
+    }
     ```
-3. Consume topic to ensure the data is there:
+3. Consume topic to ensure the data is there (from KSQL):
     ```
-    $ kafkacat -F ~/.ccloud/config -b <broker endpoint>:9092 -C -t wikipedia-language-map -o beginning -K:
+    ksql> print 'wikipedia-language-map' from beginning;
     ```
 4. From KSQL CLI, register the topic as a **TABLE**:
     ```
@@ -319,7 +352,7 @@ This will demonstrate joining a stream of events to a table of dimensions for da
         l.language \
     from \
         wikipediasource w \
-        INNER JOIN wikipedialanguages l on w.channel = l.channel;
+        JOIN wikipedialanguages l on w.channel = l.channel;
 
     ```
 
